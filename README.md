@@ -23,10 +23,10 @@ This Helm chart relies on the OCI Service Operator for Kubernetes (OSOK), and it
 
 **1. Clone or download the contents of this repo** 
      
-     git clone https://github.com/chiphwang1/helm-oci-django-atp.git
+     git clone https://github.com/oracle-devrel/helm-oci-django-autonomous-db.git
 **2. Change to the directory that holds the Helm Chart** 
 
-      cd ./helm-oci-django-atp.git  
+      cd ./helm-oci-django-autonomous-db.git
         
 **3. Populate the values.yaml file with the required information**   
 
