@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+  labels:
+    app: django
+    {{- include "helm-oci-django-atp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app: django
+    spec:
+      volumes:
+      - name: wallet
+        emptyDir: {}
+      serviceAccountName: internal-kubectl
+      initContainers:
+      - name: django-init
+        image: {{ .Values.initContainerImage }}
+        command: [ "python3", "./check_autodb.py" ]
+        env:
+        - name: secret_name
+          value: {{ .Values.wallet.walletName }}
+        - name: path
+          value: {{ .Values.secretPath }}
+        volumeMounts:
+        - name: wallet
+          mountPath: /wallet
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.containerImage }}
+          command: [ "/bin/bash", "-c", "./setup.sh" ]
+          env:
+          - name: DBNAME
+            value: {{.Values.dbServiceLevel}}
+          - name: DBPASSWORD
+            value: {{ .Values.dbPassword }}
+          - name: DBUSER
+            value: 'admin'
+          volumeMounts:
+          - name: wallet
+            mountPath: /wallet
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /api
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
